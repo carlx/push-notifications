@@ -33,11 +33,11 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   // console.log('[Service Worker] Notification click Received.');
-
+  console.log(event);
   event.notification.close();
 
   event.waitUntil(
-    clients.openWindow('http://yoursite.pl')
+    clients.openWindow(event.notification.href)
   );
 });
 

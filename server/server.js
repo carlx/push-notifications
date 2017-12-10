@@ -18,19 +18,6 @@ webpush.setVapidDetails(
   'iU0Z22AG6Sm-pFr4Ka94rrPBo1axCHV5QZ2Rx6bzeAI' // privateKey
 );
 
-
-// This is the same output of calling JSON.stringify on a PushSubscription
-const pushSubscription = {
-  endpoint: 'https://fcm.googleapis.com/fcm/send/dJ3X-n2euaE:APA91bH2qgFFH-8QJbkPqov-zc1dLLUoSkkHBMriJUKhwl4ekGbLkxdl-QBVBjoICh2hczsB_7OnLbGD9tjW7rLl8-MQ5rsjPplyssxgGsCGMild5pxfTBQwOtwiJV8PEGUeyiPvk5b3',
-  expirationTime: null,
-  keys: {
-    p256dh: 'BDCsEOhkNOjEy5-GpjcKgaQbUDJGX8sxl9MTQPjrHwTOo8ZvFfQPATvHF2a3ayG12RwCPATF_pPJhTKeqrw3XU4=',
-    auth: 'qQR7tcrtYoEUKdke3APZVQ==',
-  },
-};
-
-webpush.sendNotification(pushSubscription, 'Ello');
-
 const corsOptions = {
   origin: '*',
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -43,15 +30,28 @@ server.options('/userdata', cors());
 server.options('/employees', cors());
 server.options('/schools/1', cors());
 
+let subscription = null;
 
 server.post('/notify', (req, res) => {
   res.status(200);
-  const result = webpush.sendNotification(req.body, JSON.stringify({ title: faker.internet.email(), message: faker.company.companyName() }));
+  subscription = req.body;
   res.jsonp(req.body);
-  // res.jsonp(req.body.map(function (element) {
-  //     element.state = 'CC';
-  //     return element;
-  // }));
+});
+
+server.post('/push', (req, res) => {
+  res.status(200);
+  const result = webpush.sendNotification(subscription,
+    JSON.stringify({
+      title: faker.internet.email(),
+      message: faker.company.companyName(),
+      renotify: false,
+      data: faker.internet.url(),
+    })
+  );
+  result.then((success) => {
+    res.jsonp(success);
+  }).catch((error) => {
+  });
 });
 
 // server.use(router)

@@ -64,6 +64,7 @@ export class PushNotification extends React.PureComponent {
           // todo automatic subscription
           this.serviceWorkerRegistration = swReg;
           this.setState({ log: 'Service Worker is registered' });
+          this.subscribeUser();
         }).catch((error) => {
           this.setState({ log: `Service Worker Error ${JSON.stringify(error)}` });
         });
@@ -90,8 +91,20 @@ export class PushNotification extends React.PureComponent {
       .catch(() => this.setState({ log: 'Faild sending to server' }));
   }
 
-  sendToServer = () => {
-    this.updateSubscriptionOnServer(this.subscription);
+  pushFromServer = () => {
+    fetch('http://localhost:3066/push',
+      {
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      }).then((success) => {
+      if (success.status === 200) {
+        return success.json();
+      }
+      throw new Error();
+    }).then((json) => this.setState({ log: `Data sended to server: ${JSON.stringify(json)}` }))
+      .catch(() => this.setState({ log: 'Faild sending to server' }));
   }
 
 
@@ -105,8 +118,8 @@ export class PushNotification extends React.PureComponent {
           }
         </button>
         {this.state.isSubscribed &&
-        <button onClick={this.sendToServer}>
-          updateSubscrition on serwer
+        <button onClick={this.pushFromServer}>
+          Push notifycation from server
         </button>
         }
       </div>
